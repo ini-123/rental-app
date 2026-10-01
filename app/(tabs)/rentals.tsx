@@ -1,39 +1,54 @@
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { COLORS } from '../../constants/colors';
 
 type Tab = 'Active' | 'Upcoming' | 'Past';
 
-const rentals = [
-  {
-    id: '1',
-    name: 'Canon EOS R6',
-    dates: 'Apr 26 – Apr 28, 2025',
-    price: '₦45,000',
-    status: 'Active',
-  },
-  {
-    id: '2',
-    name: 'Canon EOS R6',
-    dates: 'Apr 26 – Apr 28, 2025',
-    price: '₦45,000',
-    status: 'Active',
-  },
-  {
-    id: '3',
-    name: 'Godox SL60W Light',
-    dates: 'May 1 – May 3, 2025',
-    price: '₦18,000',
-    status: 'Past',
-  },
-];
+type Rental = {
+  id: string;
+  name: string;
+  dates: string;
+  price: string;
+  status: Tab;
+};
 
 export default function RentalsScreen() {
-  const [selectedTab, setSelectedTab] = useState<Tab>('Active');
+  const [selectedTab, setSelectedTab] =
+    useState<Tab>('Active');
 
-  const filteredRentals = rentals.filter((item) => item.status === selectedTab);
+  const [rentals, setRentals] = useState<Rental[]>([]);
+
+  const loadRentals = async () => {
+    try {
+      const savedRentals = await AsyncStorage.getItem('rentals');
+
+      if (savedRentals) {
+        setRentals(JSON.parse(savedRentals));
+      } else {
+        setRentals([]);
+      }
+    } catch (error) {
+      console.log('Error loading rentals:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadRentals();
+  }, []);
+
+  const filteredRentals = rentals.filter(
+    (item) => item.status === selectedTab
+  );
 
   return (
     <View style={styles.container}>
@@ -42,22 +57,28 @@ export default function RentalsScreen() {
       </View>
 
       <View style={styles.tabs}>
-        {(['Active', 'Upcoming', 'Past'] as Tab[]).map((tab) => (
-          <Pressable
-            key={tab}
-            style={[styles.tab, selectedTab === tab && styles.activeTab]}
-            onPress={() => setSelectedTab(tab)}
-          >
-            <Text
+        {(['Active', 'Upcoming', 'Past'] as Tab[]).map(
+          (tab) => (
+            <Pressable
+              key={tab}
               style={[
-                styles.tabText,
-                selectedTab === tab && styles.activeTabText,
+                styles.tab,
+                selectedTab === tab && styles.activeTab,
               ]}
+              onPress={() => setSelectedTab(tab)}
             >
-              {tab}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                style={[
+                  styles.tabText,
+                  selectedTab === tab &&
+                    styles.activeTabText,
+                ]}
+              >
+                {tab}
+              </Text>
+            </Pressable>
+          )
+        )}
       </View>
 
       <ScrollView
@@ -65,41 +86,63 @@ export default function RentalsScreen() {
         contentContainerStyle={styles.list}
       >
         {filteredRentals.map((rental) => (
-          <Pressable key={rental.id} style={styles.rentalCard}>
+          <Pressable
+            key={rental.id}
+            style={styles.rentalCard}
+          >
             <View style={styles.imagePlaceholder}>
-              <Ionicons name="image-outline" size={23} color="#AAAAAA" />
+              <Ionicons
+                name="image-outline"
+                size={23}
+                color="#AAAAAA"
+              />
             </View>
 
             <View style={styles.rentalInfo}>
-              <Text style={styles.rentalName}>{rental.name}</Text>
+              <Text style={styles.rentalName}>
+                {rental.name}
+              </Text>
 
-              <Text style={styles.rentalDate}>{rental.dates}</Text>
+              <Text style={styles.rentalDate}>
+                {rental.dates}
+              </Text>
 
               <View
                 style={[
                   styles.status,
-                  selectedTab === 'Active' && styles.activeStatus,
-                  selectedTab === 'Past' && styles.pastStatus,
+                  rental.status === 'Active' &&
+                    styles.activeStatus,
+                  rental.status === 'Past' &&
+                    styles.pastStatus,
                 ]}
               >
-                <Text style={styles.statusText}>{rental.status}</Text>
+                <Text style={styles.statusText}>
+                  {rental.status}
+                </Text>
               </View>
             </View>
 
-            <Text style={styles.price}>{rental.price}</Text>
+            <Text style={styles.price}>
+              {rental.price}
+            </Text>
           </Pressable>
         ))}
 
         {filteredRentals.length === 0 && (
           <View style={styles.empty}>
-            <Ionicons name="briefcase-outline" size={35} color="#AAAAAA" />
+            <Ionicons
+              name="briefcase-outline"
+              size={35}
+              color="#AAAAAA"
+            />
 
             <Text style={styles.emptyTitle}>
               No {selectedTab.toLowerCase()} rentals
             </Text>
 
             <Text style={styles.emptyText}>
-              Your {selectedTab.toLowerCase()} rentals will appear here.
+              Your {selectedTab.toLowerCase()} rentals will
+              appear here.
             </Text>
           </View>
         )}
@@ -172,6 +215,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+    backgroundColor: COLORS.white,
   },
 
   imagePlaceholder: {

@@ -1,13 +1,12 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Image,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
+} from 'react-native';
 
 import { COLORS } from '../../constants/colors';
 
@@ -146,12 +145,13 @@ export default function HomeScreen() {
 
         {recommendedEquipment.map((item) => (
           <EquipmentCard
-            key={item.id}
-            name={item.name}
-            category={item.category}
-            location={item.location}
-            price={item.price}
-          />
+  key={item.id}
+  id={item.id}
+  name={item.name}
+  category={item.category}
+  location={item.location}
+  price={item.price}
+/>
         ))}
       </ScrollView>
     </View>
@@ -176,21 +176,36 @@ function Category({
   );
 }
 
+
 function EquipmentCard({
+  id,
   name,
   category,
   location,
   price,
 }: {
+  id: string;
   name: string;
   category: string;
   location: string;
   price: string;
 }) {
   return (
-    <Pressable style={styles.equipmentCard}>
+    <Pressable
+      style={styles.equipmentCard}
+      onPress={() =>
+        router.push({
+          pathname: '/booking/equipment',
+          params: { id },
+        })
+      }
+    >
       <View style={styles.equipmentImage}>
-        <Ionicons name="image-outline" size={30} color="#AAAAAA" />
+        <Ionicons
+          name="image-outline"
+          size={30}
+          color="#AAAAAA"
+        />
       </View>
 
       <View style={styles.equipmentInfo}>
@@ -198,7 +213,9 @@ function EquipmentCard({
           <View style={styles.equipmentNameContainer}>
             <Text style={styles.equipmentName}>{name}</Text>
 
-            <Text style={styles.equipmentCategory}>{category}</Text>
+            <Text style={styles.equipmentCategory}>
+              {category}
+            </Text>
           </View>
 
           <Pressable>
@@ -218,7 +235,9 @@ function EquipmentCard({
               color={COLORS.textSecondary}
             />
 
-            <Text style={styles.equipmentLocation}>{location}</Text>
+            <Text style={styles.equipmentLocation}>
+              {location}
+            </Text>
           </View>
 
           <Text style={styles.price}>{price}</Text>
@@ -227,6 +246,7 @@ function EquipmentCard({
     </Pressable>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
